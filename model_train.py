@@ -3,32 +3,28 @@ from statistics import mode
 import torch
 sys.path.append(os.getcwd())
 import argparse
-from rumorDc.BiGCN_master.Process.process import *
+from Process.process import *
 import torch as th
 from torch_scatter  import scatter_mean
 import torch.nn.functional as F
 import numpy as np
-from rumorDc.BiGCN_master.tools.earlystopping3class import EarlyStopping
-# from rumorDc.ACLR_master.ACLR4RUMOR_NAACL2022_main.tools.earlystopping2class import EarlyStopping
+from tools.earlystopping3class import EarlyStopping
+from tools.earlystopping2class import EarlyStopping
 from torch_geometric.data import DataLoader
 from tqdm import tqdm
-from rumorDc.BiGCN_master.Process.rand5fold import *
-from rumorDc.BiGCN_master.tools.evaluate import *
+from Process.rand5fold import *
+from tools.evaluate import *
 from torch_geometric.nn import GCNConv
 import copy
-from rumorDc.BiGCN_master.model.TransformerBlock  import MultiheadAttention
+from model.TransformerBlock  import MultiheadAttention
 import torch.nn.init as init
 import pickle
 from collections import OrderedDict
 from torch.nn import BatchNorm1d
 #device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-from rumorDc.BiGCN_master.model.Twitter.COMET import COMET
+from model.Twitter.COMET import COMET
 from rumorDc.ts2vec.models.dilated_conv import DilatedConvEncoder
 from rumorDc.ts2vec.models.encoder import *
-from rumorDc.CDGTN.utils import length_to_mask
-from torch.nn.utils.rnn import pad_sequence
-from torch_geometric.nn import TransformerConv
-from torch_geometric.nn import GATConv
 #加载训练好的模型参数
 class Source_COMET(th.nn.Module):
     def __init__(self, in_feats, hid_feats, out_feats):
@@ -301,60 +297,60 @@ class TDrumorGCN(th.nn.Module):
         x, edge_index = data.x, data.edge_index
         root=data.root
         root_feature=torch.stack([torch.tensor(item) for item in root]).to(device)
-        # x = self.gnn1(x, edge_index)
-        # x=self.TSEncoder(x)
-        #edge_num_list=data.edge_num
+        x = self.gnn1(x, edge_index)
+        x=self.TSEncoder(x)
+        edge_num_list=data.edge_num
         #推断器模块
-        # triple_ids,triple_mask=data.triple_ids,data.triple_mask
-        # triple_ids=torch.stack([torch.tensor(item) for item in triple_ids]).to(device)
-        # triple_mask = torch.stack([torch.tensor(item) for item in triple_mask]).to(device)
-        # logits=self.COMET(triple_ids,triple_mask).view(128,-1)
-        # #logits=logits[:,:768]
-        # logits=F.relu(logits)
-        # logits= F.dropout(logits, training=self.training)
-        # logits = self.COMET(data)
-        # batch=data.batch
-        # batch_size = max(batch) + 1
-        # rootindex = data.rootindex
-        # # x_infer = self.infer_extend(x, logits, batch, batch_size, rootindex)
-        # # x_infer = th.cat((x_infer, x), 1)
-        # # x = self.att_inder(x_infer)
-        # x1=copy.copy(x.float())
-        # x_source_1=self.attention_pooling(x,batch,batch_size,rootindex) #只提取出128条源文本，进行最后的融合
-        # x = self.conv1(x, edge_index)
-        # edge_loss,edge_pred= self.edge_infer(x, edge_index)  # 在这里计算出边损失
-        # x2=copy.copy(x)
-        # x_source_2=self.attention_pooling(x, batch, batch_size, rootindex) #同上
-        # # x = F.relu(x)
-        # # x = F.dropout(x, training=self.training)
-        # root_extend = th.zeros(len(data.batch), x1.size(1)).to(device)
-        # #root_extend = th.zeros(len(data.batch), x.size(1)).to(device)
-        # for num_batch in range(batch_size):
-        #     index = (th.eq(data.batch, num_batch))
-        #     root_extend[index] = x1[rootindex[num_batch]]
-        # x = th.cat((x,root_extend), 1)
+        triple_ids,triple_mask=data.triple_ids,data.triple_mask
+        triple_ids=torch.stack([torch.tensor(item) for item in triple_ids]).to(device)
+        triple_mask = torch.stack([torch.tensor(item) for item in triple_mask]).to(device)
+        logits=self.COMET(triple_ids,triple_mask).view(128,-1)
+        #logits=logits[:,:768]
+        logits=F.relu(logits)
+        logits= F.dropout(logits, training=self.training)
+        logits = self.COMET(data)
+        batch=data.batch
+        batch_size = max(batch) + 1
+        rootindex = data.rootindex
+        # x_infer = self.infer_extend(x, logits, batch, batch_size, rootindex)
+        # x_infer = th.cat((x_infer, x), 1)
+        # x = self.att_inder(x_infer)
+        x1=copy.copy(x.float())
+        x_source_1=self.attention_pooling(x,batch,batch_size,rootindex) #只提取出128条源文本，进行最后的融合
+        x = self.conv1(x, edge_index)
+        edge_loss,edge_pred= self.edge_infer(x, edge_index)  # 在这里计算出边损失
+        x2=copy.copy(x)
+        x_source_2=self.attention_pooling(x, batch, batch_size, rootindex) #同上
         # x = F.relu(x)
         # x = F.dropout(x, training=self.training)
-        # x = self.conv2(x, edge_index,edge_weight=edge_pred)
-        # #x = self.conv2(x, edge_index)
-        # x = F.relu(x)
-        # #root_extend = th.zeros(len(data.batch), x2.size(1)).to(device)
-        # root_extend = th.zeros(len(data.batch), x2.size(1)).to(device)
-        # for num_batch in range(batch_size):
-        #     index = (th.eq(data.batch, num_batch))
-        #     root_extend[index] = x2[rootindex[num_batch]]
-        # x = th.cat((x,root_extend), 1)
-        # x=scatter_mean(x, batch, dim=0)
-        # x_source=th.cat((x_source_1,x_source_2), 1)#只提取出128条源文本来，不进行散列，直接进行源融合
-        # #x_source = scatter_mean(x_source, batch, dim=0)
-        #
-        # # return x,x_source,logits,edge_loss
-        # x = th.tanh(x)
-        # x_source = th.tanh(x_source)
-        # # return x, edge_loss
-        # # x_source= th.tanh(x_source)
-        # return x,x_source,edge_loss
-        # return x
+        root_extend = th.zeros(len(data.batch), x1.size(1)).to(device)
+        #root_extend = th.zeros(len(data.batch), x.size(1)).to(device)
+        for num_batch in range(batch_size):
+            index = (th.eq(data.batch, num_batch))
+            root_extend[index] = x1[rootindex[num_batch]]
+        x = th.cat((x,root_extend), 1)
+        x = F.relu(x)
+        x = F.dropout(x, training=self.training)
+        x = self.conv2(x, edge_index,edge_weight=edge_pred)
+        #x = self.conv2(x, edge_index)
+        x = F.relu(x)
+        #root_extend = th.zeros(len(data.batch), x2.size(1)).to(device)
+        root_extend = th.zeros(len(data.batch), x2.size(1)).to(device)
+        for num_batch in range(batch_size):
+            index = (th.eq(data.batch, num_batch))
+            root_extend[index] = x2[rootindex[num_batch]]
+        x = th.cat((x,root_extend), 1)
+        x=scatter_mean(x, batch, dim=0)
+        x_source=th.cat((x_source_1,x_source_2), 1)#只提取出128条源文本来，不进行散列，直接进行源融合
+        #x_source = scatter_mean(x_source, batch, dim=0)
+        
+        # return x,x_source,logits,edge_loss
+        x = th.tanh(x)
+        x_source = th.tanh(x_source)
+        # return x, edge_loss
+        # x_source= th.tanh(x_source)
+        return x,x_source,edge_loss
+        #return x
         x = th.tanh(root_feature)
         return x
     #深入层数最多两层，再多也没有意义，原帖子开始的节点一般是舆论的主要影响因素
@@ -584,36 +580,33 @@ class Net(th.nn.Module):
     def forward(self, data):
         # TD_x,TD_edge_loss = self.TDrumorGCN(data)
         # BU_x,BU_edge_loss = self.BUrumorGCN(data)
-        # TD_x,x_source_1,TD_edge_loss= self.TDrumorGCN(data)
-        # BU_x,x_source_2,BU_edge_loss= self.BUrumorGCN(data)
+        TD_x,x_source_1,TD_edge_loss= self.TDrumorGCN(data)
+        BU_x,x_source_2,BU_edge_loss= self.BUrumorGCN(data)
         TD_x= self.TDrumorGCN(data)
-        # BU_x= self.BUrumorGCN(data)
-        # TD_x = th.cat((TD_x, x_source_1), 1)
-        # BU_x = th.cat((BU_x, x_source_2), 1)
-        # self.x = th.cat((TD_x, BU_x), 1)
-        # self.comet_x=self.COMET(data)
+        BU_x= self.BUrumorGCN(data)
+        TD_x = th.cat((TD_x, x_source_1), 1)
+        BU_x = th.cat((BU_x, x_source_2), 1)
+        self.x = th.cat((TD_x, BU_x), 1)
+        self.comet_x=self.COMET(data)
         #再和源文本增强矩阵进行一次结合会怎么样？
-        #self.x = th.cat((BU_x, TD_x), 1)  # (128,10356)
-        # TD_x = th.cat((x_source_1, TD_x), 1)
-        # BU_x = th.cat((x_source_2, BU_x), 1)
-        # self.x = th.cat((TD_x, BU_x), 1) #带注意力的源融合
-        # self.x=self.fc(self.x) #(10356,4)
-        # x_source = th.cat((x_source_1, x_source_2), 1)
-        # self.comet_x=th.cat((x_source,self.comet_x), 1)
-        #self.comet_x=self.fc_comet(self.comet_x)
+        self.x = th.cat((BU_x, TD_x), 1)  # (128,10356)
+        TD_x = th.cat((x_source_1, TD_x), 1)
+        BU_x = th.cat((x_source_2, BU_x), 1)
+        self.x = th.cat((TD_x, BU_x), 1) #带注意力的源融合
+        self.x=self.fc(self.x) #(10356,4)
+        x_source = th.cat((x_source_1, x_source_2), 1)
+        self.comet_x=th.cat((x_source,self.comet_x), 1)
+        self.comet_x=self.fc_comet(self.comet_x)
         self.x = self.fc_comet(TD_x)
         out = F.log_softmax(self.x, dim=1)
-        # comet_out=F.log_softmax(self.comet_x,dim=1)
+        comet_out=F.log_softmax(self.comet_x,dim=1)
         #return   out,  TD_edge_loss, BU_edge_loss
         # return out,TD_edge_loss,BU_edge_loss
         # return out,TD_edge_loss,BU_edge_loss
-        # return out,comet_out,TD_edge_loss,BU_edge_loss
-        return out
+        return out,comet_out,TD_edge_loss,BU_edge_loss
+        # return out
 
 def train_GCN(x_test,x_train,TDdroprate,BUdroprate,lr, weight_decay,patience,n_epochs,batchsize,dataname,iter):
-    # if i==1 or i==4 or i==7:
-    #     batch_size_test=10
-    # batch_size_train=batchsize
     model = Net(768,768,64).to(device)
     BU_params=list(map(id,model.BUrumorGCN.conv1.parameters()))
     BU_params += list(map(id, model.BUrumorGCN.conv2.parameters()))
@@ -632,12 +625,7 @@ def train_GCN(x_test,x_train,TDdroprate,BUdroprate,lr, weight_decay,patience,n_e
     early_stopping = EarlyStopping(patience=patience, verbose=True)
     for epoch in range(n_epochs):
         traindata_list, testdata_list = loadBiData(dataname,x_train, x_test,TDdroprate,BUdroprate)  #数据层面
-        # train_loader = DataLoader(traindata_list, batch_size=batch_size_train, shuffle=True, num_workers=0,drop_last=True)
         train_loader = DataLoader(traindata_list, batch_size=batchsize, shuffle=True, num_workers=0,drop_last=True)
-        # if i==1 or i==4 or i==7:
-        #     test_loader = DataLoader(testdata_list, batch_size=batch_size_test, shuffle=False, num_workers=0, drop_last=True)
-        # else:
-        #     test_loader = DataLoader(testdata_list, batch_size=batch_size_train, shuffle=False, num_workers=0, drop_last=True)
         test_loader = DataLoader(testdata_list, batch_size=batchsize, shuffle=True, num_workers=0,drop_last=True)
         avg_loss = []
         avg_acc = []
@@ -645,23 +633,22 @@ def train_GCN(x_test,x_train,TDdroprate,BUdroprate,lr, weight_decay,patience,n_e
         tqdm_train_loader = tqdm(train_loader)
         for Batch_data in tqdm_train_loader:
             Batch_data.to(device)
-            # out_labels,comet_labels,TD_edge_loss,BU_edge_loss= model(Batch_data)
+            out_labels,comet_labels,TD_edge_loss,BU_edge_loss= model(Batch_data)
             # out_labels,TD_edge_loss,BU_edge_loss = model(Batch_data)
-            out_labels= model(Batch_data)
+            #out_labels= model(Batch_data)
             #criterion_loss = criterion(out_labels, Batch_data.y)
-            #out_labels = out_labels[:128, :] #待修改，不能为了拼接而草率截取
-            # finalloss1=F.nll_loss(out_labels,Batch_data.y)
-            loss = F.nll_loss(out_labels, Batch_data.y)
-            # finalloss2=F.nll_loss(comet_labels,Batch_data.y)
-            # finalloss=0.8*finalloss1+0.2*finalloss2 #这里的比例参数待定
-            # loss=finalloss1+0.2*TD_edge_loss+0.2*BU_edge_loss
+            
+            finalloss1=F.nll_loss(out_labels,Batch_data.y)
+            #loss = F.nll_loss(out_labels, Batch_data.y)
+            finalloss2=F.nll_loss(comet_labels,Batch_data.y)
+            finalloss=0.8*finalloss1+0.2*finalloss2 #这里的比例参数待定
+            loss=finalloss+0.2*TD_edge_loss+0.2*BU_edge_loss
             optimizer.zero_grad()
             loss.backward()
             avg_loss.append(loss.item())
             optimizer.step()
-            _, pred = out_labels.max(dim=-1)
-            # _, pred2 = comet_labels.max(dim=-1)
-            # pred= torch.tensor([mode(pair) for pair in zip(pred1, pred2)]).to(device) #使用投票法将两个模型预测结果融合
+            aligned_labels = out_labels + comet_labels
+            _, pred = aligned_labels.max(dim=-1)
             correct = pred.eq(Batch_data.y).sum().item()
             train_acc = correct / len(Batch_data.y)
             avg_acc.append(train_acc)
@@ -682,18 +669,18 @@ def train_GCN(x_test,x_train,TDdroprate,BUdroprate,lr, weight_decay,patience,n_e
         for Batch_data in tqdm_test_loader:
             Batch_data.to(device)
             # val_out,TD_edge_loss,BU_edge_loss= model(Batch_data)
-            # val_out,comet_labels,TD_edge_loss,BU_edge_loss= model(Batch_data)
+            val_out,comet_labels,TD_edge_loss,BU_edge_loss= model(Batch_data)
             val_out= model(Batch_data)
             #val_loss1 = F.nll_loss(val_out, Batch_data.y)
-            val_loss= F.nll_loss(val_out, Batch_data.y)
-            # val_loss2=F.nll_loss(comet_labels,Batch_data.y)
-            # val_loss=0.5*val_loss2+0.5*val_loss1
-            # val_loss=val_loss1+0.2*TD_edge_loss+0.2*BU_edge_loss
+            val_loss1= F.nll_loss(val_out, Batch_data.y)
+            val_loss2=F.nll_loss(comet_labels,Batch_data.y)
+            val_loss=0.8*val_loss2+0.2*val_loss1
+            val_loss=val_loss+0.2*TD_edge_loss+0.2*BU_edge_loss
+            aligned_labels = val_out + comet_labels
             # val_loss=val_loss1
             temp_val_losses.append(val_loss.item())
-            _, val_pred = val_out.max(dim=-1)
-            # _, val_pred2 = comet_labels.max(dim=-1)
-            # val_pred = torch.tensor([mode(pair) for pair in zip(val_pred1, val_pred2)]).to(device)  # 使用投票法将两个模型预测结果融合
+
+            _, val_pred = aligned_labels.max(dim=-1)
             correct = val_pred.eq(Batch_data.y).sum().item()
             val_acc = correct / len(Batch_data.y)
             Acc_all, Acc1, Prec1, Recll1, F1, Acc2, Prec2, Recll2, F2,Acc3, Prec3, Recll3, F3 = evaluation3class(
@@ -720,7 +707,7 @@ def train_GCN(x_test,x_train,TDdroprate,BUdroprate,lr, weight_decay,patience,n_e
         early_stopping(np.mean(temp_val_losses), np.mean(temp_val_Acc_all), np.mean(temp_val_Acc1),
                        np.mean(temp_val_Acc2),np.mean(temp_val_Acc3), np.mean(temp_val_Prec1), np.mean(temp_val_Prec2),np.mean(temp_val_Prec3),
                        np.mean(temp_val_Recll1), np.mean(temp_val_Recll2),np.mean(temp_val_Recll3), np.mean(temp_val_F1), np.mean(temp_val_F2),np.mean(temp_val_F3),
-                       model, 'BiGCN', "PHEME")
+                       model, 'BiGCN', "Twitter")
         accs = np.mean(temp_val_Acc_all)
         acc1 = np.mean(temp_val_Acc1)
         acc2 = np.mean(temp_val_Acc2)
@@ -753,123 +740,20 @@ def train_GCN(x_test,x_train,TDdroprate,BUdroprate,lr, weight_decay,patience,n_e
     return train_losses, val_losses, train_accs, val_accs, accs, acc1, pre1, rec1, F1, acc2, pre2, rec2, F2,acc3, pre3, rec3, F3
 
 
-    #     ACC=[]
-    #     F1_1=[]
-    #     F2_2=[]
-    #     F3_3=[]
-    #     F4_4=[]
-    #     temp_val_losses = []
-    #     temp_val_accs = []
-    #     temp_val_Acc_all, temp_val_Acc1, temp_val_Prec1, temp_val_Recll1, temp_val_F1, \
-    #     temp_val_Acc2, temp_val_Prec2, temp_val_Recll2, temp_val_F2, \
-    #     temp_val_Acc3, temp_val_Prec3, temp_val_Recll3, temp_val_F3, \
-    #     temp_val_Acc4, temp_val_Prec4, temp_val_Recll4, temp_val_F4 = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-    #     model.eval()
-    #     tqdm_test_loader = tqdm(test_loader)
-    #     pred = []  # 存储所有预测结果的列表
-    #     true = []
-    #     model.eval()  # 切换到评估模式
-    #     with torch.no_grad():  # 禁用梯度计算
-    #         for Batch_data in tqdm_test_loader:
-    #             Batch_data.to(device)
-    #             val_out,_,_= model(Batch_data)
-    #             val_loss  = F.nll_loss(val_out, Batch_data.y)
-    #             temp_val_losses.append(val_loss.item())
-    #             _, val_pred = val_out.max(dim=1)
-    #             # pred.append(val_pred)
-    #             # true.append(Batch_data.y)
-    #             correct = val_pred.eq(Batch_data.y).sum().item()
-    #             val_acc = correct / len(Batch_data.y)
-    #             Acc_all, Acc1, Prec1, Recll1, F1, Acc2, Prec2, Recll2, F2, Acc3, Prec3, Recll3, F3, Acc4, Prec4, Recll4, F4 = evaluation4class(
-    #                 val_pred, Batch_data.y)
-    #             temp_val_Acc_all.append(Acc_all), temp_val_Acc1.append(Acc1), temp_val_Prec1.append(
-    #                 Prec1), temp_val_Recll1.append(Recll1), temp_val_F1.append(F1), \
-    #             temp_val_Acc2.append(Acc2), temp_val_Prec2.append(Prec2), temp_val_Recll2.append(
-    #                 Recll2), temp_val_F2.append(F2), \
-    #             temp_val_Acc3.append(Acc3), temp_val_Prec3.append(Prec3), temp_val_Recll3.append(
-    #                 Recll3), temp_val_F3.append(F3), \
-    #             temp_val_Acc4.append(Acc4), temp_val_Prec4.append(Prec4), temp_val_Recll4.append(
-    #                 Recll4), temp_val_F4.append(F4)
-    #             temp_val_accs.append(val_acc)
-    #     # pred = th.cat(pred, dim=0) # 将所有预测结果合并成一个张量
-    #     # true = th.cat(true, dim=0) # 将所有真实标签合并成一个张量
-    #     # correct = pred.eq(true).sum().item()  # 计算预测正确的样本数量
-    #     # acc = correct / len(true)  # 计算精度
-    #     val_losses.append(np.mean(temp_val_losses))
-    #     val_accs.append(np.mean(temp_val_accs))
-    #     print("Epoch {:05d} | Val_Loss {:.4f}| Val_Accuracy {:.4f}".format(epoch, np.mean(temp_val_losses),
-    #                                                                        np.mean(temp_val_accs)))
-    #     # print("Epoch {:05d} | Val_Loss {:.4f}| Val_Accuracy {:.4f}".format(epoch, np.mean(temp_val_losses),
-    #     #                                                                    acc))
-    #
-    #     res = ['acc:{:.4f}'.format(np.mean(temp_val_Acc_all)),
-    #            'C1:{:.4f},{:.4f},{:.4f},{:.4f}'.format(np.mean(temp_val_Acc1), np.mean(temp_val_Prec1),
-    #                                                    np.mean(temp_val_Recll1), np.mean(temp_val_F1)),
-    #            'C2:{:.4f},{:.4f},{:.4f},{:.4f}'.format(np.mean(temp_val_Acc2), np.mean(temp_val_Prec2),
-    #                                                    np.mean(temp_val_Recll2), np.mean(temp_val_F2)),
-    #            'C3:{:.4f},{:.4f},{:.4f},{:.4f}'.format(np.mean(temp_val_Acc3), np.mean(temp_val_Prec3),
-    #                                                    np.mean(temp_val_Recll3), np.mean(temp_val_F3)),
-    #            'C4:{:.4f},{:.4f},{:.4f},{:.4f}'.format(np.mean(temp_val_Acc4), np.mean(temp_val_Prec4),
-    #                                                    np.mean(temp_val_Recll4), np.mean(temp_val_F4))]
-    #     ACC.append(np.mean(temp_val_Acc_all))
-    #     F1_1.append(np.mean(temp_val_F1))
-    #     F2_2.append(np.mean(temp_val_F2))
-    #     F3_3.append(np.mean(temp_val_F3))
-    #     # res = ['acc:{:.4f}'.format(acc),
-    #     #        'C1:{:.4f},{:.4f},{:.4f},{:.4f}'.format(np.mean(temp_val_Acc1), np.mean(temp_val_Prec1),
-    #     #                                                np.mean(temp_val_Recll1), np.mean(temp_val_F1)),
-    #     #        'C2:{:.4f},{:.4f},{:.4f},{:.4f}'.format(np.mean(temp_val_Acc2), np.mean(temp_val_Prec2),
-    #     #                                                np.mean(temp_val_Recll2), np.mean(temp_val_F2)),
-    #     #        'C3:{:.4f},{:.4f},{:.4f},{:.4f}'.format(np.mean(temp_val_Acc3), np.mean(temp_val_Prec3),
-    #     #                                                np.mean(temp_val_Recll3), np.mean(temp_val_F3)),
-    #     #        'C4:{:.4f},{:.4f},{:.4f},{:.4f}'.format(np.mean(temp_val_Acc4), np.mean(temp_val_Prec4),
-    #     #                                                np.mean(temp_val_Recll4), np.mean(temp_val_F4))]
-    #     print('results:', res)
-    #     early_stopping(np.mean(temp_val_losses), np.mean(temp_val_accs), np.mean(temp_val_F1), np.mean(temp_val_F2),
-    #                    np.mean(temp_val_F3), np.mean(temp_val_F4), model, 'BiGCN', 'event')
-    #     accs =np.mean(temp_val_accs)
-    #     # F1 = np.mean(temp_val_F1)
-    #     # F2 = np.mean(temp_val_F2)
-    #     # F3 = np.mean(temp_val_F3)
-    #     # F4 = np.mean(temp_val_F4)
-    #     if early_stopping.early_stop:
-    #         print("Early stopping")
-    #         accs=early_stopping.accs
-    #         # F1=early_stopping.F1
-    #         # F2 = early_stopping.F2
-    #         # F3 = early_stopping.F3
-    #         F4 = early_stopping.F4
-    #         break
-    #
-    # return train_losses , val_losses ,train_accs, val_accs,max(ACC),max(F1_1),max(F2_2),max(F3_3),F4
-
+    
 if __name__ == '__main__':
- # rumour_thread_size=638+1067+697
- # rumour_false=638
- # rumour_true=1067
- # rumour_unverified=697
- # rumour_false_weight=rumour_false/rumour_thread_size
- # rumour_true_weight=rumour_true/rumour_thread_size
- # rumour_unverified_weight=rumour_unverified/rumour_thread_size
- lr=0.0001
+ lr=0.0005
 weight_decay=1e-4
 patience=10
 n_epochs=200
 batchsize=128
 TDdroprate=0.2
 BUdroprate=0.2
-#datasetname="charliehebdo" #"Twitter15"、"Twitter16"
-# datasetname= ['charliehebdo', 'ferguson', 'germanwings-crash', 'ottawashooting', 'sydneysiege']
-datasetname="Pheme"
-#five_folders=['ebola-essien','gurlitt','prince-toronto','putinmissing']
-iterations=1
+datasetname="Twitter"
+iterations=10
 model="GCN"
 device = th.device('cuda:0' if th.cuda.is_available() else 'cpu')
 test_accs = []
-# NR_F1 = []
-# FR_F1 = []
-# TR_F1 = []
-# UR_F1 = []
 ACC1, ACC2,ACC3, PRE1, PRE2,PRE3, REC1, REC2,REC3, F1, F2 ,F3= [], [], [], [], [], [], [], [],[], [], [], []
 for iter in range(iterations):
     fold0_x_test, fold0_x_train, \
@@ -877,7 +761,7 @@ for iter in range(iterations):
     fold2_x_test, fold2_x_train, \
     fold3_x_test, fold3_x_train, \
     fold4_x_test, fold4_x_train = load5foldData()
-    #treeDic=loadTree(datasetname)
+    treeDic=loadTree(datasetname)
     train_losses, val_losses, train_accs, val_accs, accs_0, acc1_0, pre1_0, rec1_0,  F1_0, acc2_0, pre2_0, rec2_0, F2_0,acc3_0, pre3_0, rec3_0, F3_0 = train_GCN(
                                                                                                 fold0_x_test,
                                                                                                 fold0_x_train,
@@ -888,7 +772,7 @@ for iter in range(iterations):
                                                                                                 batchsize,
                                                                                                 datasetname,
                                                                                                 iter)  # 0 1 2 3
-    torch.cuda.empty_cache()
+    
 
     train_losses, val_losses, train_accs, val_accs, accs_1, acc1_1, pre1_1, rec1_1, F1_1, acc2_1, pre2_1, rec2_1, F2_1,acc3_1, pre3_1, rec3_1, F3_1= train_GCN(
                                                                                                fold1_x_test,
@@ -900,7 +784,7 @@ for iter in range(iterations):
                                                                                                batchsize,
                                                                                                datasetname,
                                                                                                iter) #0 1 2 4
-    torch.cuda.empty_cache()
+    
     train_losses, val_losses, train_accs, val_accs, accs_2, acc1_2, pre1_2, rec1_2, F1_2, acc2_2, pre2_2, rec2_2, F2_2, acc3_2, pre3_2, rec3_2, F3_2 = train_GCN(
                                                                                                fold2_x_test,
                                                                                                fold2_x_train,
@@ -911,7 +795,7 @@ for iter in range(iterations):
                                                                                                batchsize,
                                                                                                datasetname,
                                                                                                iter)# 0 1 3 4
-    torch.cuda.empty_cache()
+    
     train_losses, val_losses, train_accs, val_accs, accs_3, acc1_3, pre1_3, rec1_3, F1_3, acc2_3, pre2_3, rec2_3, F2_3,acc3_3, pre3_3, rec3_3, F3_3 = train_GCN(
                                                                                                fold3_x_test,
                                                                                                fold3_x_train,
@@ -922,7 +806,7 @@ for iter in range(iterations):
                                                                                                batchsize,
                                                                                                datasetname,
                                                                                                iter)# 0 2 3 4
-    torch.cuda.empty_cache()
+   
     train_losses, val_losses, train_accs, val_accs, accs_4, acc1_4, pre1_4, rec1_4, F1_4, acc2_4, pre2_4, rec2_4, F2_4,acc3_4, pre3_4, rec3_4, F3_4 = train_GCN(
                                                                                                fold4_x_test,
                                                                                                fold4_x_train,
@@ -933,17 +817,8 @@ for iter in range(iterations):
                                                                                                batchsize,
                                                                                                datasetname,
                                                                                                iter)# 1 2 3 4
-    torch.cuda.empty_cache()
 
-    # test_accs.append((accs_0 + accs_1 + accs_2 + accs_3 + accs_4) / 5)
-    # ACC1.append((acc1_0 + acc1_1 + acc1_2 + acc1_3 + acc1_4) / 5)
-    # ACC2.append((acc2_0 + acc2_1 + acc2_2 + acc2_3 + acc2_4) / 5)
-    # PRE1.append((pre1_0 + pre1_1 + pre1_2 + pre1_3 + pre1_4) / 5)
-    # PRE2.append((pre2_0 + pre2_1 + pre2_2 + pre2_3 + pre2_4) / 5)
-    # REC1.append((rec1_0 + rec1_1 + rec1_2 + rec1_3 + rec1_4) / 5)
-    # REC2.append((rec2_0 + rec2_1 + rec2_2 + rec2_3 + rec2_4) / 5)
-    # F1.append((F1_0 + F1_1 + F1_2 + F1_3 + F1_4) / 5)
-    # F2.append((F2_0 + F2_1 + F2_2 + F2_3 + F2_4) / 5)
+
     test_accs.append((accs_0 + accs_1 + accs_2 + accs_3 + accs_4) / 5)
     ACC1.append((acc1_0 + acc1_1 + acc1_2 + acc1_3 + acc1_4) / 5)
     ACC2.append((acc2_0 + acc2_1 + acc2_2 + acc2_3 + acc2_4) / 5)
@@ -959,242 +834,3 @@ for iter in range(iterations):
     F3.append((F3_0 + F3_1 + F3_2 + F3_3 + F3_4) / 5)
 print("Total_Test_Accuracy: {:.4f}|FR F1: {:.4f}|TR F1: {:.4f}|UR F1: {:.4f}".format(
     sum(test_accs) / iterations, sum(F1) /iterations, sum(F2) /iterations, sum(F3) / iterations))
-# print("Twitter:|Total_Test_ Accuracy: {:.4f}|acc1: {:.4f}|acc2: {:.4f}|acc3: {:.4f}|pre1: {:.4f}|pre2: {:.4f}|pre3: {:.4f}"
-#       "|rec1: {:.4f}|rec2: {:.4f}|rec3: {:.4f}|F1: {:.4f}|F2: {:.4f}|F3: {:.4f}|mF:{:.4f}|wF:{:.4f}".format(sum(test_accs) / iterations, sum(ACC1) / iterations,
-#                                                                 sum(ACC2) / iterations,sum(ACC3) / iterations, sum(PRE1) / iterations,
-#                                                                 sum(PRE2) / iterations,sum(PRE3) / iterations,
-#                                                                 sum(REC1) / iterations, sum(REC2) / iterations,sum(REC3) / iterations,
-#                                                                 sum(F1) / iterations, sum(F2) / iterations,sum(F3) / iterations,((sum(F1) / iterations+sum(F2) / iterations+sum(F3) / iterations)/3),(sum(F1) / iterations)*rumour_true_weight+(sum(F2) / iterations)*rumour_false_weight+(sum(F3) / iterations)*rumour_unverified_weight))
-
-# if __name__ == '__main__':
-#  rumour_thread_size=638+1067+697
-#  rumour_false=638
-#  rumour_true=1067
-#  rumour_unverified=697
-#  rumour_false_weight=rumour_false/rumour_thread_size
-#  rumour_true_weight=rumour_true/rumour_thread_size
-#  rumour_unverified_weight=rumour_unverified/rumour_thread_size
-#  lr=0.0002
-# weight_decay=1e-4
-# patience=10
-# n_epochs=200
-# batchsize=128
-# TDdroprate=0.2
-# BUdroprate=0.2
-# #datasetname="charliehebdo" #"Twitter15"、"Twitter16"
-# # datasetname= ['charliehebdo', 'ferguson', 'germanwings-crash', 'ottawashooting', 'sydneysiege']
-# datasetname=['charliehebdo','ebola-essien','ferguson', 'germanwings-crash','gurlitt', 'ottawashooting','prince-toronto','putinmissing','sydneysiege']
-# #five_folders=['ebola-essien','gurlitt','prince-toronto','putinmissing']
-# iterations=1
-# model="GCN"
-# device = th.device('cuda:0' if th.cuda.is_available() else 'cpu')
-# test_accs = []
-# # NR_F1 = []
-# # FR_F1 = []
-# # TR_F1 = []
-# # UR_F1 = []
-# ACC1, ACC2,ACC3, PRE1, PRE2,PRE3, REC1, REC2,REC3, F1, F2 ,F3= [], [], [], [], [], [], [], [],[], [], [], []
-# for iter in range(iterations):
-#     fold0_x_test, fold0_x_train= load5foldData(datasetname,i=0)
-#     fold1_x_test,  fold1_x_train= load5foldData(datasetname,i=1)
-#     fold2_x_test, fold2_x_train= load5foldData(datasetname,i=2)
-#     fold3_x_test, fold3_x_train= load5foldData(datasetname,i=3)
-#     fold4_x_test,fold4_x_train = load5foldData(datasetname,i=4)
-#     fold5_x_test, fold5_x_train = load5foldData(datasetname, i=5)
-#     fold6_x_test, fold6_x_train = load5foldData(datasetname, i=6)
-#     fold7_x_test, fold7_x_train = load5foldData(datasetname, i=7)
-#     fold8_x_test, fold8_x_train = load5foldData(datasetname, i=8)
-#     #treeDic=loadTree(datasetname)
-#     train_losses, val_losses, train_accs, val_accs, accs_0, acc1_0, pre1_0, rec1_0,  F1_0, acc2_0, pre2_0, rec2_0, F2_0,acc3_0, pre3_0, rec3_0, F3_0 = train_GCN(
-#                                                                                                 fold0_x_test,
-#                                                                                                 fold0_x_train,
-#                                                                                                 TDdroprate, BUdroprate, lr,
-#                                                                                                 weight_decay,
-#                                                                                                 patience,
-#                                                                                                 n_epochs,
-#                                                                                                 batchsize,
-#                                                                                                 datasetname,
-#                                                                                                 iter, i=0)  # 0 1 2 3
-#     torch.cuda.empty_cache()
-#
-#     train_losses, val_losses, train_accs, val_accs, accs_1, acc1_1, pre1_1, rec1_1, F1_1, acc2_1, pre2_1, rec2_1, F2_1,acc3_1, pre3_1, rec3_1, F3_1= train_GCN(
-#                                                                                                fold1_x_test,
-#                                                                                                fold1_x_train,
-#                                                                                                TDdroprate,BUdroprate, lr,
-#                                                                                                weight_decay,
-#                                                                                                patience,
-#                                                                                                n_epochs,
-#                                                                                                batchsize,
-#                                                                                                datasetname,
-#                                                                                                iter,i=1) #0 1 2 4
-#     torch.cuda.empty_cache()
-#     train_losses, val_losses, train_accs, val_accs, accs_2, acc1_2, pre1_2, rec1_2, F1_2, acc2_2, pre2_2, rec2_2, F2_2, acc3_2, pre3_2, rec3_2, F3_2 = train_GCN(
-#                                                                                                fold2_x_test,
-#                                                                                                fold2_x_train,
-#                                                                                                TDdroprate,BUdroprate, lr,
-#                                                                                                weight_decay,
-#                                                                                                patience,
-#                                                                                                n_epochs,
-#                                                                                                batchsize,
-#                                                                                                datasetname,
-#                                                                                                iter,i=2)# 0 1 3 4
-#     torch.cuda.empty_cache()
-#     train_losses, val_losses, train_accs, val_accs, accs_3, acc1_3, pre1_3, rec1_3, F1_3, acc2_3, pre2_3, rec2_3, F2_3,acc3_3, pre3_3, rec3_3, F3_3 = train_GCN(
-#                                                                                                fold3_x_test,
-#                                                                                                fold3_x_train,
-#                                                                                                TDdroprate,BUdroprate, lr,
-#                                                                                                weight_decay,
-#                                                                                                patience,
-#                                                                                                n_epochs,
-#                                                                                                batchsize,
-#                                                                                                datasetname,
-#                                                                                                iter,i=3)# 0 2 3 4
-#     torch.cuda.empty_cache()
-#     train_losses, val_losses, train_accs, val_accs, accs_4, acc1_4, pre1_4, rec1_4, F1_4, acc2_4, pre2_4, rec2_4, F2_4,acc3_4, pre3_4, rec3_4, F3_4 = train_GCN(
-#                                                                                                fold4_x_test,
-#                                                                                                fold4_x_train,
-#                                                                                                TDdroprate,BUdroprate, lr,
-#                                                                                                weight_decay,
-#                                                                                                patience,
-#                                                                                                n_epochs,
-#                                                                                                batchsize,
-#                                                                                                datasetname,
-#                                                                                                iter,i=4)# 1 2 3 4
-#     torch.cuda.empty_cache()
-#     train_losses, val_losses, train_accs, val_accs, accs_5, acc1_5, pre1_5, rec1_5, F1_5, acc2_5, pre2_5, rec2_5, F2_5,acc3_5, pre3_5, rec3_5, F3_5 = train_GCN(
-#                                                                                                                 fold5_x_test,
-#                                                                                                                 fold5_x_train,
-#                                                                                                                 TDdroprate, BUdroprate, lr,
-#                                                                                                                 weight_decay,
-#                                                                                                                 patience,
-#                                                                                                                 n_epochs,
-#                                                                                                                 batchsize,
-#                                                                                                                 datasetname,
-#                                                                                                                 iter, i=5)  # 1 2 3 4
-#
-#     train_losses, val_losses, train_accs, val_accs, accs_6, acc1_6, pre1_6, rec1_6, F1_6, acc2_6, pre2_6, rec2_6, F2_6,acc3_6, pre3_6, rec3_6, F3_6 = train_GCN(
-#                                                                                                                             fold6_x_test,
-#                                                                                                                             fold6_x_train,
-#                                                                                                                             TDdroprate, BUdroprate, lr,
-#                                                                                                                             weight_decay,
-#                                                                                                                             patience,
-#                                                                                                                             n_epochs,
-#                                                                                                                             batchsize,
-#                                                                                                                             datasetname,
-#                                                                                                                             iter, i=6)  # 1 2 3 4
-#
-#     train_losses, val_losses, train_accs, val_accs, accs_7, acc1_7, pre1_7, rec1_7, F1_7, acc2_7, pre2_7, rec2_7, F2_7,acc3_7, pre3_7, rec3_7, F3_7 = train_GCN(
-#                                                                                                                             fold7_x_test,
-#                                                                                                                             fold7_x_train,
-#                                                                                                                             TDdroprate, BUdroprate, lr,
-#                                                                                                                             weight_decay,
-#                                                                                                                             patience,
-#                                                                                                                             n_epochs,
-#                                                                                                                             batchsize,
-#                                                                                                                             datasetname,
-#                                                                                                                             iter, i=7)  # 1 2 3 4
-#     train_losses, val_losses, train_accs, val_accs, accs_8, acc1_8, pre1_8, rec1_8, F1_8, acc2_8, pre2_8, rec2_8, F2_8,acc3_8, pre3_8, rec3_8, F3_8  = train_GCN(
-#                                                                                                                         fold8_x_test,
-#                                                                                                                         fold8_x_train,
-#                                                                                                                         TDdroprate, BUdroprate, lr,
-#                                                                                                                         weight_decay,
-#                                                                                                                         patience,
-#                                                                                                                         n_epochs,
-#                                                                                                                         batchsize,
-#                                                                                                                         datasetname,
-#                                                                                                                         iter, i=8)  # 1 2 3 4
-#     # test_accs.append((accs_0 + accs_1 + accs_2 + accs_3 + accs_4) / 5)
-#     # ACC1.append((acc1_0 + acc1_1 + acc1_2 + acc1_3 + acc1_4) / 5)
-#     # ACC2.append((acc2_0 + acc2_1 + acc2_2 + acc2_3 + acc2_4) / 5)
-#     # PRE1.append((pre1_0 + pre1_1 + pre1_2 + pre1_3 + pre1_4) / 5)
-#     # PRE2.append((pre2_0 + pre2_1 + pre2_2 + pre2_3 + pre2_4) / 5)
-#     # REC1.append((rec1_0 + rec1_1 + rec1_2 + rec1_3 + rec1_4) / 5)
-#     # REC2.append((rec2_0 + rec2_1 + rec2_2 + rec2_3 + rec2_4) / 5)
-#     # F1.append((F1_0 + F1_1 + F1_2 + F1_3 + F1_4) / 5)
-#     # F2.append((F2_0 + F2_1 + F2_2 + F2_3 + F2_4) / 5)
-#     test_accs.append((accs_0 + accs_1 + accs_2 + accs_3 + accs_4+accs_5+accs_6+accs_7+accs_8) / 9)
-#     ACC1.append((acc1_0 + acc1_1 + acc1_2 + acc1_3 + acc1_4+acc1_5+acc1_6+acc1_7+acc1_8) / 9)
-#     ACC2.append((acc2_0 + acc2_1 + acc2_2 + acc2_3 + acc2_4+acc2_5+acc2_6+acc2_7+acc2_8) / 9)
-#     ACC3.append((acc3_0 + acc3_1 + acc3_2 + acc3_3 + acc3_4 + acc3_5 + acc3_6 + acc3_7 + acc3_8) / 9)
-#     PRE1.append((pre1_0 + pre1_1 + pre1_2 + pre1_3 + pre1_4+pre1_5+pre1_6+pre1_7+pre1_8) / 9)
-#     PRE2.append((pre2_0 + pre2_1 + pre2_2 + pre2_3 + pre2_4+pre2_5+pre2_6+pre2_7+pre2_8) / 9)
-#     PRE3.append((pre3_0 + pre3_1 + pre3_2 + pre3_3 + pre3_4 + pre3_5 + pre3_6 + pre3_7 + pre3_8) / 9)
-#     REC1.append((rec1_0 + rec1_1 + rec1_2 + rec1_3 + rec1_4+rec1_5+rec1_6+rec1_7+rec1_8) / 9)
-#     REC2.append((rec2_0 + rec2_1 + rec2_2 + rec2_3 + rec2_4+rec2_5+rec2_6+rec2_7+rec2_8) / 9)
-#     REC3.append((rec3_0 + rec3_1 + rec3_2 + rec3_3 + rec3_4 + rec3_5 + rec3_6 + rec3_7 + rec3_8) / 9)
-#     F1.append((F1_0 + F1_1 + F1_2 + F1_3 + F1_4+F1_5+F1_6+F1_7+F1_8) / 9)
-#     F2.append((F2_0 + F2_1 + F2_2 + F2_3 + F2_4+F2_5+F2_6+F2_7+F2_8) / 9)
-#     F3.append((F3_0 + F3_1 + F3_2 + F3_3 + F3_4 + F3_5 + F3_6 + F3_7 + F3_8) / 9)
-# print("Twitter:|Total_Test_ Accuracy: {:.4f}|acc1: {:.4f}|acc2: {:.4f}|acc3: {:.4f}|pre1: {:.4f}|pre2: {:.4f}|pre3: {:.4f}"
-#       "|rec1: {:.4f}|rec2: {:.4f}|rec3: {:.4f}|F1: {:.4f}|F2: {:.4f}|F3: {:.4f}|mF:{:.4f}|wF:{:.4f}".format(sum(test_accs) / iterations, sum(ACC1) / iterations,
-#                                                                 sum(ACC2) / iterations,sum(ACC3) / iterations, sum(PRE1) / iterations,
-#                                                                 sum(PRE2) / iterations,sum(PRE3) / iterations,
-#                                                                 sum(REC1) / iterations, sum(REC2) / iterations,sum(REC3) / iterations,
-#                                                                 sum(F1) / iterations, sum(F2) / iterations,sum(F3) / iterations,((sum(F1) / iterations+sum(F2) / iterations+sum(F3) / iterations)/3),(sum(F1) / iterations)*rumour_true_weight+(sum(F2) / iterations)*rumour_false_weight+(sum(F3) / iterations)*rumour_unverified_weight))
-
-# train_losses, val_losses, train_accs, val_accs0, accs5, F1_5, F2_5, F3_5, F4_5 = train_GCN(
-    #                                                                                         fold5_x_test,
-    #                                                                                         fold5_x_train,
-    #                                                                                         TDdroprate, BUdroprate,
-    #                                                                                         lr, weight_decay,
-    #                                                                                         patience,
-    #                                                                                         n_epochs,
-    #                                                                                         batchsize,
-    #                                                                                         datasetname,
-    #                                                                                         iter, i=5)  # 0 1 2 3
-
-    # train_losses, val_losses, train_accs, val_accs0, accs6, F1_6, F2_6, F3_6, F4_6 = train_GCN(
-    #                                                                                             fold6_x_test,
-    #                                                                                             fold6_x_train,
-    #                                                                                             TDdroprate, BUdroprate,
-    #                                                                                             lr, weight_decay,
-    #                                                                                             patience,
-    #                                                                                             n_epochs,
-    #                                                                                             batchsize,
-    #                                                                                             datasetname,
-    #                                                                                             iter, i=6)  # 0 1 2 3
-    # #
-    # train_losses, val_losses, train_accs, val_accs0, accs7, F1_7, F2_7, F3_7, F4_7 = train_GCN(
-    #                                                                                         fold7_x_test,
-    #                                                                                         fold7_x_train,
-    #                                                                                         TDdroprate, BUdroprate,
-    #                                                                                         lr, weight_decay,
-    #                                                                                         patience,
-    #                                                                                         n_epochs,
-    #                                                                                         batchsize,
-    #                                                                                         datasetname,
-    #                                                                                         iter, i=7)  # 0 1 2 3
-
-    # train_losses, val_losses, train_accs, val_accs0, accs8, F1_8, F2_8, F3_8, F4_8 = train_GCN(
-    #                                                                                         fold8_x_test,
-    #                                                                                         fold8_x_train,
-    #                                                                                         TDdroprate, BUdroprate,
-    #                                                                                         lr, weight_decay,
-    #                                                                                         patience,
-    #                                                                                         n_epochs,
-    #                                                                                         batchsize,
-    #                                                                                         datasetname,
-    #                                                                                         iter, i=8)  # 0 1 2 3
-#     test_accs.append((accs0 + accs1 + accs2 + accs3 + accs4) / 5)
-#     NR_F1.append((F1_0 + F1_1 + F1_2 + F1_3 + F1_4) / 5)
-#     FR_F1.append((F2_0 + F2_1 + F2_2 + F2_3 + F2_4) / 5)
-#     TR_F1.append((F3_0 + F3_1 + F3_2 + F3_3 + F3_4) / 5)
-#     UR_F1.append((F4_0 + F4_1 + F4_2 + F4_3 + F4_4) / 5)
-# print("Total_Test_Accuracy: {:.4f}|NR F1: {:.4f}|FR F1: {:.4f}|TR F1: {:.4f}|UR F1: {:.4f}".format(
-#         sum(test_accs) / iterations, sum(NR_F1) / iterations, sum(FR_F1) / iterations, sum(TR_F1) / iterations,
-#         sum(UR_F1) / iterations))
-#     # print("Total_Test_Accuracy: {:.4f}|NR F1: {:.4f}|FR F1: {:.4f}|TR F1: {:.4f}|UR F1: {:.4f}".format(
-#     #     test_accs[iter], sum(NR_F1) / iterations, sum(FR_F1) / iterations, sum(TR_F1) / iterations,
-#     #     sum(UR_F1) / iterations))
-#     # print("\n")
-# print("Total_F1:{:.4f}".format((NR_F1[iter]+FR_F1[iter])/2))
-
-#     test_accs.append((accs0+accs1+accs2+accs3+accs4)/5)
-#     NR_F1.append((F1_0+F1_1+F1_2+F1_3+F1_4)/5)
-#     FR_F1.append((F2_0 + F2_1 + F2_2 + F2_3 + F2_4) / 5)
-#     TR_F1.append((F3_0 + F3_1 + F3_2 + F3_3 + F3_4) / 5)
-#     UR_F1.append((F4_0 + F4_1 + F4_2 + F4_3 + F4_4) / 5)
-# print("Total_Test_Accuracy: {:.4f}|NR F1: {:.4f}|FR F1: {:.4f}|TR F1: {:.4f}|UR F1: {:.4f}".format(sum(test_accs) / iterations, sum(NR_F1) /iterations, sum(FR_F1) /iterations, sum(TR_F1) / iterations, sum(UR_F1) / iterations))
-#
-
-
