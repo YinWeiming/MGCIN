@@ -137,7 +137,7 @@ class TDrumorGCN(th.nn.Module):
         #self.gnn1 = TransformerConv(in_feats, in_feats // 2, heads=2).to(device)
         self.gnn1 = GATConv(in_feats, 128, heads=6)
         # self.TSEncoder=TSEncoder(input_dims=768, output_dims=768)
-        def creat_network(self, hid_feats=768):  # 添加了一个网络,或许可以从这个网路入手来加入立场因素，进而决定相似度的计算来达到共同学习的目的。
+        def creat_network(self, hid_feats=768): 
             layer_list = OrderedDict()  # 创建一个字典
             for l in range(len(self.num_features_list)):
                 layer_list['conv{}'.format(l)] = th.nn.Conv1d(  # 创建卷积层字典，而且是根据特征列表的长度
@@ -157,7 +157,7 @@ class TDrumorGCN(th.nn.Module):
             return layer_list
 
         self.sim_network = th.nn.Sequential(
-            creat_network(self))  # 创建了一个名为“sim_val"的神经网络,计算两个节点距离的相似度问题，应该再仔细分析原理，弄明白再处理
+            creat_network(self))  
         mod_self = self
         mod_self.num_features_list = [hid_feats]
 
@@ -262,7 +262,7 @@ class TDrumorGCN(th.nn.Module):
         x_j = x[col].unsqueeze(2)
         x_ij = th.abs(x_i - x_j)
         #x_ij=x_ij.view(1,x_ij.size(1),x_ij.size(0))
-        # x_ij=self.stance_network(x_ij)# 通过一个相似度网络来计算节点特征间的相似度，网络內部不太好修改，带结果出来后可以结合立场因素再次调整数值大小来标识节点之间的相似程度。
+        # x_ij=self.stance_network(x_ij)
         sim_val = self.sim_network(x_ij)
         sim_val=sim_val.view(sim_val.size(0),sim_val.size(1))
         # sim_val:(1533,1,64)
@@ -373,7 +373,7 @@ class BUrumorGCN(th.nn.Module):
         self.layer_list = OrderedDict()
         self.num_features_list = [768 * r for r in [1]]
         # self.COMET=COMET()
-        def creat_network(self, hid_feats=768):  # 添加了一个网络,或许可以从这个网路入手来加入立场因素，进而决定相似度的计算来达到共同学习的目的。
+        def creat_network(self, hid_feats=768): 
             layer_list = OrderedDict()  # 创建一个字典
             for l in range(len(self.num_features_list)):
                 layer_list['conv{}'.format(l)] = th.nn.Conv1d(  # 创建卷积层字典，而且是根据特征列表的长度
@@ -483,7 +483,7 @@ class BUrumorGCN(th.nn.Module):
         x_j = x[col].unsqueeze(2)
         x_ij = th.abs(x_i - x_j)
         #x_ij=x_ij.view(1,x_ij.size(1),x_ij.size(0))
-        # x_ij=self.stance_network(x_ij)# 通过一个相似度网络来计算节点特征间的相似度，网络內部不太好修改，带结果出来后可以结合立场因素再次调整数值大小来标识节点之间的相似程度。
+        # x_ij=self.stance_network(x_ij)
         sim_val = self.sim_network(x_ij)
         sim_val=sim_val.view(sim_val.size(0),sim_val.size(1))
         # sim_val:(1533,1,64)
