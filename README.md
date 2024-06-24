@@ -39,9 +39,10 @@ Zubiaga A, Liakata M, Procter R, et al. Analysing how people orient to and sprea
   </thead>
   <tbody>
     <tr>
-      <td>行1，列1</td>
-      <td>行1，列2</td>
-      <td>行1，列3</td>
+      <td>事件总数</td>
+      <td>1490</td>
+      <td>818</td>
+      <td>2402</td>
     </tr>
     <tr>
       <td>行2，列1</td>
