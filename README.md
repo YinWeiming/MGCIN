@@ -28,6 +28,33 @@ The datasets used in the experiments were based on the three publicly available 
 Wu K,Yang S,Zhu K Q.False Rumors Detection on Sina Weibo by Propagation Structures[C]//Proceedings of 2015 IEEE 31st International Conference on Data Engineering. 2015: 651-662.<br>
 Ma J, Gao W, Wong K F. Detect Rumors in Microblog Posts Using Propagation Structure via Kernel Learning[C]//Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2017:708-717.<br>
 Zubiaga A, Liakata M, Procter R, et al. Analysing how people orient to and spread rumours in    social media by looking at conversational threads[J]. PloS one, 2016, 11(3): e0150989.<br>
+<table>
+  <thead>
+    <tr>
+      <th><b>数据集</b></th>
+      <th>Twitter15</th>
+      <th>Twitter16</th>
+      <th>PHEME</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>行1，列1</td>
+      <td>行1，列2</td>
+      <td>行1，列3</td>
+    </tr>
+    <tr>
+      <td>行2，列1</td>
+      <td>行2，列2</td>
+      <td>行2，列3</td>
+    </tr>
+    <tr>
+      <td>行3，列1</td>
+      <td>行3，列2</td>
+      <td>行3，列3</td>
+    </tr>
+  </tbody>
+</table>
 
 
 
