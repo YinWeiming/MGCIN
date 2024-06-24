@@ -9,14 +9,14 @@
 
 <h2>Prerequisites</h2>
 Make sure your local environment has the following installed:<br>
-cuda version < 11.0
-pytorch>=1.7.1 & <=1.9
-wandb == 0.9.7
-python==3.5.2
-numpy==1.18.1
-torch_scatter==1.4.0
-torch_sparse==0.4.3
-torch_cluster==1.4.5
-torch_geometric==1.3.2
-tqdm==4.40.0
-joblib==0.14.1
+cuda version < 11.0 <br>
+pytorch>=1.7.1 & <=1.9<br>
+wandb == 0.9.7<br>
+python==3.5.2<br>
+numpy== 1.18.1<br>
+torch_scatter==1.4.0<br>
+torch_sparse==0.4.3<br>
+torch_cluster==1.4.5<br>
+torch_geometric==1.3.2<br>
+tqdm==4.40.0<br>
+joblib==0.14.1<br>
