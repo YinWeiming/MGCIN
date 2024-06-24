@@ -22,4 +22,12 @@ tqdm==4.40.0<br>
 joblib==0.14.1<br>
 
 <h2>Datastes</h2>
-<strong>We provide the dataset in the data folder.</strong>We provide the dataset in the data folder.
+<strong>We provide the dataset in the data folder:</strong><br>
+The datasets used in the experiments were based on the three publicly available datasets Twitter15,Twitter16,PHEME.<br>
+
+Wu K,Yang S,Zhu K Q.False Rumors Detection on Sina Weibo by Propagation Structures[C]//Proceedings of 2015 IEEE 31st International Conference on Data Engineering. 2015: 651-662.<br>
+Ma J, Gao W, Wong K F. Detect Rumors in Microblog Posts Using Propagation Structure via Kernel Learning[C]//Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2017:708-717.<br>
+Zubiaga A, Liakata M, Procter R, et al. Analysing how people orient to and spread rumours in    social media by looking at conversational threads[J]. PloS one, 2016, 11(3): e0150989.<br>
+
+
+
