@@ -77,5 +77,9 @@ Zubiaga A, Liakata M, Procter R, et al. Analysing how people orient to and sprea
   </tbody>
 </table>
 
+<h2>Authors</h2>
+weiming Yin @github.com/YinWeiming <br>
+Email: yinweiming@dlmu.edu.cn <br>
+Site: GitHub
 
 
