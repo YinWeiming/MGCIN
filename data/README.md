@@ -3,9 +3,6 @@ Download data from here and put it under data folder.
 
 <h1>Environment</h1>
 Make sure your local environment has the following installed:<br>
-
-python==3.5.2
-torch==1.4.0
-Install the dependency using:
-
+pytorch>=1.7.1 & <=1.9<br>
+<b>Install the dependency using:</b> <br>
 pip install -r requirements.txt
