@@ -1,4 +1,4 @@
-MGCIN
+<h1>MGCIN</h1>
  
 
 This is the data and code for our paper Fuzzy-DDI: A Interpretable Fuzzy Logic Query Model for Complex Drug-Drug Interaction Prediction.
