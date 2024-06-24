@@ -45,14 +45,34 @@ Zubiaga A, Liakata M, Procter R, et al. Analysing how people orient to and sprea
       <td>2402</td>
     </tr>
     <tr>
-      <td>行2，列1</td>
-      <td>行2，列2</td>
-      <td>行2，列3</td>
+      <td>虚假谣言事件数</td>
+      <td>370</td>
+      <td>205</td>
+      <td>638</td>   
     </tr>
     <tr>
-      <td>行3，列1</td>
-      <td>行3，列2</td>
-      <td>行3，列3</td>
+      <td>真实谣言事件数</td>
+      <td>374</td>
+      <td>205</td>
+      <td>1067</td>
+    </tr>
+     <tr>
+      <td>未经验证谣言事件件数</td>
+      <td>374</td>
+      <td>203</td>
+      <td>697</td>
+    </tr>
+     <tr>
+      <td>非谣言事件数</td>
+      <td>372</td>
+      <td>205</td>
+      <td>-</td>
+    </tr>
+     <tr>
+      <td>所有事件转发评论总数</td>
+      <td>331612</td>
+      <td>204820</td>
+      <td>105354</td>
     </tr>
   </tbody>
 </table>
