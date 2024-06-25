@@ -1,6 +1,3 @@
-torch_scatter==1.4.0
-torch_sparse==0.4.3
-torch_cluster==1.4.5
-torch_geometric==1.3.2
-tqdm==4.40.0
-joblib==0.14.1
+version https://git-lfs.github.com/spec/v1
+oid sha256:4e514b772e5a6b1a744742647403031e0a86071b6ca7e8c3d24795e178673fdb
+size 119
