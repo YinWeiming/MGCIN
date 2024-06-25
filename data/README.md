@@ -1,8 +1,3 @@
-<h1>Download data</h1>
-Download data from here and put it under data folder.
-
-<h1>Environment</h1>
-Make sure your local environment has the following installed:<br>
-pytorch>=1.7.1 & <=1.9<br>
-<b>Install the dependency using:</b> <br>
-pip install -r requirements.txt
+version https://git-lfs.github.com/spec/v1
+oid sha256:be62ab88a142f10530802e4fff00b2bf4a4888f36e5f239d7891a3112dc2b905
+size 274
