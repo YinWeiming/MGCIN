@@ -31,7 +31,7 @@ Zubiaga A, Liakata M, Procter R, et al. Analysing how people orient to and sprea
 <table>
   <thead>
     <tr>
-      <th><b>鏁版嵁闆�</b></th>
+      <th><b>数据集</b></th>
       <th>Twitter15</th>
       <th>Twitter16</th>
       <th>PHEME</th>
@@ -39,37 +39,37 @@ Zubiaga A, Liakata M, Procter R, et al. Analysing how people orient to and sprea
   </thead>
   <tbody>
     <tr>
-      <td>浜嬩欢鎬绘暟</td>
+      <td>事件总数</td>
       <td>1490</td>
       <td>818</td>
       <td>2402</td>
     </tr>
     <tr>
-      <td>铏氬亣璋ｈ█浜嬩欢鏁�</td>
+      <td>虚假谣言事件数</td>
       <td>370</td>
       <td>205</td>
       <td>638</td>   
     </tr>
     <tr>
-      <td>鐪熷疄璋ｈ█浜嬩欢鏁�</td>
+      <td>真实谣言事件数</td>
       <td>374</td>
       <td>205</td>
       <td>1067</td>
     </tr>
      <tr>
-      <td>鏈粡楠岃瘉璋ｈ█浜嬩欢浠舵暟</td>
+      <td>未经验证谣言事件件数</td>
       <td>374</td>
       <td>203</td>
       <td>697</td>
     </tr>
      <tr>
-      <td>闈炶埃瑷€浜嬩欢鏁�</td>
+      <td>非谣言事件数</td>
       <td>372</td>
       <td>205</td>
       <td>-</td>
     </tr>
      <tr>
-      <td>鎵€鏈変簨浠惰浆鍙戣瘎璁烘€绘暟</td>
+      <td>所有事件转发评论总数</td>
       <td>331612</td>
       <td>204820</td>
       <td>105354</td>
